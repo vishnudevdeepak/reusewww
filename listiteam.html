@@ -419,6 +419,22 @@ body {
         transform: translateX(0);
     }
 }
+.cart-btn {
+    background: #27ae60;
+    color: white;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* subtle hover glow */
+.cart-btn:hover {
+    box-shadow: 0 8px 18px rgba(39,174,96,0.35);
+}
 </style>
 </head>
 <body>
@@ -1038,6 +1054,40 @@ function showToast(msg) {
 
 updateListingCount();
 </script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
 
+    const buttons = document.querySelectorAll(".cart-btn");
+
+    buttons.forEach(btn => {
+
+        btn.addEventListener("mousemove", (e) => {
+
+            const rect = btn.getBoundingClientRect();
+
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+
+            // distance from center
+            const moveX = (x - centerX) * 0.3;
+            const moveY = (y - centerY) * 0.3;
+
+            btn.style.transform = `
+                translate(${moveX}px, ${moveY}px) scale(1.08)
+            `;
+        });
+
+        // reset when mouse leaves
+        btn.addEventListener("mouseleave", () => {
+            btn.style.transform = `translate(0,0) scale(1)`;
+        });
+
+    });
+
+});
+</script>
 </body>
 </html>

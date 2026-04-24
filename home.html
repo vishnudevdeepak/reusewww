@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ReuseMart - Home</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
@@ -776,7 +777,40 @@ body {
 .navbar.shrink .nav-links a {
     font-size: 13px;
 }
+@media screen and (max-width: 600px) {
+  .container {
+    width: 100%;
+    display: block; /* Stacks elements */
+  }
+}
+/* PERSPECTIVE (important for 3D effect) */
+.grid {
+    perspective: 1000px;
+}
 
+/* INITIAL STATE */
+.scroll-animate {
+    opacity: 0;
+    transform: rotateX(30deg) translateY(60px) scale(0.9);
+    transform-origin: bottom;
+    transition: all 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* WHEN VISIBLE */
+.scroll-animate.show {
+    opacity: 1;
+    transform: rotateX(0deg) translateY(0) scale(1);
+}
+
+/* OPTIONAL: HOVER 3D LIFT */
+.card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-8px) rotateX(5deg) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
 </style>
 </head>
 
@@ -819,9 +853,6 @@ body {
     </div>
   </div>
 </section>
-
-
-
 <!-- ITEMS -->
 <section class="section">
   <div class="section-tag">Popular Right Now</div>
@@ -829,59 +860,56 @@ body {
     <h2>Featured Items</h2>
     <a href="materials.html">View all →</a>
   </div>
+
   <div class="grid">
 
-    <div class="card">
+    <div class="card scroll-animate">
       <div class="card-img-wrap">
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTAIEPxoDU1G1uMBCTT_OedXVxZUYrs0J_AwA&s" alt="Cement Bags">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTAIEPxoDU1G1uMBCTT_OedXVxZUYrs0J_AwA&s">
         <span class="card-badge">In Stock</span>
       </div>
       <div class="content">
         <h4>Cement Bags</h4>
         <p class="desc">Premium quality, lightly used construction cement.</p>
         <div class="card-footer">
-          <span class="price"><b>₹</b>500</span>
-          
-          <button class="cart-btn" onclick="addToCart('Cement Bags','₹500','https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTAIEPxoDU1G1uMBCTT_OedXVxZUYrs0J_AwA&s')">Add to Cart</button>
+          <span class="price">₹500</span>
+          <button class="cart-btn">Add to Cart</button>
         </div>
       </div>
     </div>
 
-    <div class="card">
+    <div class="card scroll-animate">
       <div class="card-img-wrap">
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSUKcVJ5Fpl1TzRHn3et3QqZZtcdJoYJFgrwA&s" alt="Bricks">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSUKcVJ5Fpl1TzRHn3et3QqZZtcdJoYJFgrwA&s">
         <span class="card-badge">Popular</span>
       </div>
       <div class="content">
         <h4>Bricks</h4>
-        <p class="desc">Solid red bricks, ideal for construction and garden walls.</p>
+        <p class="desc">Solid red bricks, ideal for construction.</p>
         <div class="card-footer">
-          <span class="price"><b>₹</b>5000</span>
-          
-          <button class="cart-btn" onclick="addToCart('Bricks','₹5000','https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSUKcVJ5Fpl1TzRHn3et3QqZZtcdJoYJFgrwA&s')">Add to Cart</button>
+          <span class="price">₹5000</span>
+          <button class="cart-btn">Add to Cart</button>
         </div>
       </div>
     </div>
 
-    <div class="card">
+    <div class="card scroll-animate">
       <div class="card-img-wrap">
-        <img src="https://www.autodesk.com/blogs/construction/wp-content/uploads/2024/07/steel-conmon-construction-material.jpg" alt="Steel">
+        <img src="https://www.autodesk.com/blogs/construction/wp-content/uploads/2024/07/steel-conmon-construction-material.jpg">
         <span class="card-badge">New</span>
       </div>
       <div class="content">
         <h4>Steel</h4>
-        <p class="desc">Structural steel rods, certified and ready for use.</p>
+        <p class="desc">Structural steel rods, certified and ready.</p>
         <div class="card-footer">
-          <span class="price"><b>₹</b>1500</span>
-           
-          <button class="cart-btn" onclick="addToCart('Steel','₹1500','https://www.autodesk.com/blogs/construction/wp-content/uploads/2024/07/steel-conmon-construction-material.jpg')">Add to Cart</button>
+          <span class="price">₹1500</span>
+          <button class="cart-btn">Add to Cart</button>
         </div>
       </div>
     </div>
 
   </div>
 </section>
-
 <!-- BANNER -->
 <div class="banner">
   <div class="banner-text">
@@ -948,6 +976,28 @@ window.addEventListener("scroll", () => {
     lastScroll = currentScroll;
 });
 </script>
+<script>
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
 
+            const items = entry.target.querySelectorAll(".scroll-animate");
+
+            items.forEach((el, index) => {
+                setTimeout(() => {
+                    el.classList.add("show");
+                }, index * 150); // stagger delay
+            });
+
+            observer.unobserve(entry.target);
+        }
+    });
+}, { threshold: 0.2 });
+
+// apply to all grids
+document.querySelectorAll(".grid").forEach(section => {
+    observer.observe(section);
+});
+</script>
 </body>
 </html>
