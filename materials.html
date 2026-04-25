@@ -23,12 +23,19 @@
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); overflow-x: hidden; }
+body {
+  background: linear-gradient(135deg, #d4f5e9, #f4f8f6);
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
 
 /* ── NAVBAR ── */
 .navbar {
-  background: rgba(255,255,255,0.92);
-  backdrop-filter: blur(14px);
+  background: rgba(255,255,255,0.25);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   padding: 0 60px;
   height: 68px;
   display: flex;
@@ -37,37 +44,32 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
   position: sticky;
   top: 0;
   z-index: 200;
-  border-bottom: 1px solid rgba(39,174,96,0.10);
-  box-shadow: 0 2px 24px rgba(39,174,96,0.07);
+  border-bottom: 1px solid rgba(255,255,255,0.30);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.05);
 }
 
 .logo { display: flex; align-items: center; gap: 10px; }
 
-.logo-icon {
-  width: 34px; height: 34px;
-  background: linear-gradient(135deg, var(--green), var(--green-light));
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 12px rgba(39,174,96,0.35);
-  flex-shrink: 0;
-}
-
-.logo-icon svg { width: 18px; height: 18px; stroke: white; fill: none; stroke-width: 2; }
-
 .logo h2 {
   font-family: 'Playfair Display', serif;
   font-size: 22px;
-  color: var(--text);
+  color: var(--green-dark);
   letter-spacing: -0.5px;
 }
 
-.logo h2 span { color: var(--green); }
-
-/* ── NAV LINKS — single unified block ── */
+/* ── NAV LINKS with slide-from-right entrance ── */
 .nav-links {
   display: flex;
   align-items: center;
   gap: 4px;
+  /* entrance state */
+  transform: translateX(120px);
+  opacity: 0;
+  animation: slideInRight 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes slideInRight {
+  to { transform: translateX(0); opacity: 1; }
 }
 
 .nav-links a {
@@ -84,7 +86,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
   line-height: 1;
 }
 
-.nav-links a:hover { color: var(--green-dark); background: var(--green-pale); }
+.nav-links a:hover { color: var(--green-dark); background: var(--green-pale); box-shadow: 0 0 10px rgba(39,174,96,0.3); }
 .nav-links a.active { color: var(--green-dark); background: var(--green-pale); font-weight: 600; }
 .nav-links a.cta {
   background: var(--green);
@@ -177,17 +179,40 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
 .grid-wrap { padding: 20px 60px 10px; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; }
 
-/* CARD */
+/* ── CARD — spiral entrance base state ── */
 .card {
-  background: white; border-radius: 18px; overflow: hidden;
-  box-shadow: var(--card-shadow); border: 1px solid rgba(39,174,96,0.06);
-  transition: all 0.30s cubic-bezier(.22,.68,0,1.2); animation: cardIn 0.5s ease both;
+  background: white;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+  border: 1px solid rgba(39,174,96,0.06);
+  display: flex;
+  flex-direction: column;
+
+  /* spiral entrance — starts rotated, scaled down, offset */
+  opacity: 0;
+  transform: rotate(-8deg) scale(0.72) translateY(60px);
+  transform-origin: center bottom;
+  transition:
+    opacity      0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    transform    0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow   0.30s cubic-bezier(.22,.68,0,1.2),
+    border-color 0.30s ease;
 }
+
+/* triggered by IntersectionObserver */
+.card.spiral-visible {
+  opacity: 1;
+  transform: rotate(0deg) scale(1) translateY(0);
+}
+
 .card.community { border-color: rgba(39,174,96,0.22); }
 
-@keyframes cardIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-
-.card:hover { transform: translateY(-8px); box-shadow: 0 20px 50px rgba(39,174,96,0.16); border-color: rgba(39,174,96,0.25); }
+.card:hover {
+  transform: rotate(0deg) scale(1) translateY(-8px) !important;
+  box-shadow: 0 20px 50px rgba(39,174,96,0.16);
+  border-color: rgba(39,174,96,0.25);
+}
 
 .card-img-wrap { position: relative; overflow: hidden; height: 180px; }
 .card-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.40s ease; display: block; }
@@ -202,8 +227,19 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
 }
 .card-badge.community-badge { background: var(--green); color: white; border-color: var(--green); }
 
+.wishlist-fab {
+  position: absolute; top: 10px; right: 10px;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(255,255,255,0.92); backdrop-filter: blur(4px);
+  border: 1px solid rgba(233,30,140,0.25);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.22s; padding: 0;
+}
+.wishlist-fab svg { width: 15px; height: 15px; stroke: #e91e8c; fill: none; stroke-width: 2; transition: fill 0.2s; }
+.wishlist-fab:hover, .wishlist-fab.active { background: #e91e8c; border-color: #e91e8c; }
+.wishlist-fab:hover svg, .wishlist-fab.active svg { stroke: white; fill: white; }
 
-.content { padding: 18px; }
+.content { padding: 18px; display: flex; flex-direction: column; flex: 1; }
 .content h4 { font-size: 16px; font-weight: 600; margin-bottom: 4px; color: var(--text); }
 
 .cat-tag {
@@ -221,7 +257,7 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
 .price { font-family: 'Playfair Display', serif; color: var(--green-dark); font-size: 22px; font-weight: 700; }
 .price b { font-weight: 900; font-size: 24px; }
 
-.card-btns { display: flex; flex-direction: column; gap: 8px; }
+.card-btns { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
 
 .btn-cart {
   width: 100%; padding: 10px 16px; border: none; border-radius: 10px;
@@ -284,124 +320,15 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
   .section-divider { padding: 24px 20px 0; }
   .results-count { display: none; }
 }
-/* NAVBAR ANIMATION */
-.nav-links {
-    display: flex;
-    gap: 25px;
-
-    /* animation start state */
-    transform: translateX(100px);
-    opacity: 0;
-
-    /* animation */
-    animation: slideInRight 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-/* Keyframes */
-@keyframes slideInRight {
-    0% {
-        transform: translateX(120px);
-        opacity: 0;
-    }
-    100% {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-/* BODY BACKGROUND (important for glass effect) */
-body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background: linear-gradient(135deg, #d4f5e9, #f4f8f6);
-}
-
-/* GLASS NAVBAR */
-.glass {
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 50px;
-
-    /* Glass effect */
-    background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-
-    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
-}
-
-/* LOGO */
-.logo {
-    color: #1e8449;
-    font-weight: 600;
-}
-
-/* NAV LINKS */
-.nav-links {
-    display: flex;
-    gap: 25px;
-}
-
-.nav-links a {
-    text-decoration: none;
-    color: #333;
-    font-weight: 500;
-    padding: 6px 10px;
-    border-radius: 8px;
-    transition: 0.3s;
-}
-
-/* HOVER EFFECT */
-.nav-links a:hover {
-    background: rgba(39, 174, 96, 0.15);
-    color: #27ae60;
-}
-
-/* OPTIONAL: ADD SOFT GLOW */
-.nav-links a:hover {
-    box-shadow: 0 0 10px rgba(39, 174, 96, 0.3);
-}
-.nav-item {
-    opacity: 0;
-    transform: translateX(40px);
-    animation: itemSlide 0.6s ease forwards;
-}
-
-/* Delay each item */
-.nav-item:nth-child(1) { animation-delay: 0.2s; }
-.nav-item:nth-child(2) { animation-delay: 0.35s; }
-.nav-item:nth-child(3) { animation-delay: 0.5s; }
-.nav-item:nth-child(4) { animation-delay: 0.65s; }
-.nav-item:nth-child(5) { animation-delay: 0.8s; }
-
-@keyframes itemSlide {
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-@media screen and (max-width: 600px) {
-  .container {
-    width: 100%;
-    display: block; /* Stacks elements */
-  }
-}
-
 </style>
 </head>
 
 <body>
 
 <!-- NAVBAR -->
-<nav class="navbar glass" id="navbar">
+<nav class="navbar">
   <div class="logo">
-    
-    <h2><span>ReuseMart</span></h2>
+    <h2>ReuseMart</h2>
   </div>
   <div class="nav-links">
     <a href="home.html">Home</a>
@@ -500,7 +427,7 @@ function cardHTML(item, i, isCommunity) {
   const safePrice = item.price.replace(/'/g, "\\'");
 
   return `
-    <div class="card${isCommunity ? ' community' : ''}" style="animation-delay:${i * 0.07}s">
+    <div class="card${isCommunity ? ' community' : ''}" data-si="${i}">
       <div class="card-img-wrap">
         <img src="${imgSrc}" alt="${item.name}" onerror="this.src='${fallback}'">
         ${badge}
@@ -521,6 +448,29 @@ function cardHTML(item, i, isCommunity) {
         </div>
       </div>
     </div>`;
+}
+
+/* ── SPIRAL SCROLL ENTRANCE ── */
+function attachSpiralObserver() {
+  const cards = document.querySelectorAll(".card:not(.spiral-visible)");
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const card = entry.target;
+        const idx  = parseInt(card.getAttribute("data-si")) || 0;
+        setTimeout(() => {
+          card.classList.add("spiral-visible");
+        }, (idx % 4) * 80);
+        observer.unobserve(card);
+      }
+    });
+  }, {
+    threshold: 0.12,
+    rootMargin: "0px 0px -40px 0px"
+  });
+
+  cards.forEach(card => observer.observe(card));
 }
 
 function displayItems() {
@@ -563,6 +513,9 @@ function displayItems() {
           <h3>No community listings match</h3><p>Try a different search or category.</p>
         </div>`;
   }
+
+  // attach spiral observer after DOM is updated
+  attachSpiralObserver();
 }
 
 function addToCart(name, price, image) {
@@ -597,7 +550,6 @@ window.addEventListener('storage', e => {
   if (e.key === 'listings') displayItems();
 });
 </script>
-
 
 </body>
 </html>
