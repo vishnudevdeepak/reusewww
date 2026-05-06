@@ -8,6 +8,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, #27ae60, #2ecc71);
+  z-index: 9999;
+  transition: width 0.05s linear;
+  box-shadow: 0 0 8px rgba(39, 174, 96, 0.6);
+}
 * {
     margin: 0;
     padding: 0;
@@ -34,6 +45,22 @@ body {
     box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     text-align: center;
 }
+/* ── SCROLL PROGRESS ── */
+.scroll-progress {
+  position: fixed; top: 0; left: 0; height: 3px; width: 0%;
+  background: linear-gradient(90deg, var(--green), var(--green-light));
+  z-index: 9999; transition: width 0.05s linear;
+  box-shadow: 0 0 8px rgba(39,174,96,0.6);
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: linear-gradient(135deg, #d4f5e9, #f4f8f6);
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  overflow-x: hidden;
+}
+
 
 /* Headings */
 h2 {
@@ -173,51 +200,72 @@ function togglePassword(id) {
     input.type = input.type === "password" ? "text" : "password";
 }
 
+const API_BASE = (window.location.protocol === 'file:' || window.location.origin === 'null')
+    ? 'http://localhost:3000'
+    : window.location.origin;
+
 // SIGNUP
-function signup() {
+async function signup() {
     let username = document.getElementById("signupUser").value.trim();
     let password = document.getElementById("signupPass").value.trim();
 
-    if(username === "" || password === "") {
-        document.getElementById("signupError").innerText = "Please fill all fields";
+    if (username === "" || password === "") {
+        document.getElementById("signupError").innerText = "Please fill all fields.";
         return;
     }
 
-    let users = JSON.parse(localStorage.getItem("users")) || [];
+    try {
+        const response = await fetch(`${API_BASE}/api/signup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
 
-    let exists = users.find(u => u.username === username);
-    if(exists) {
-        document.getElementById("signupError").innerText = "User already exists";
-        return;
+        const data = await response.json();
+        if (!response.ok) {
+            document.getElementById("signupError").innerText = data.message || 'Signup failed.';
+            return;
+        }
+
+        alert(data.message || 'Account created successfully!');
+        showLogin();
+    } catch (error) {
+        document.getElementById("signupError").innerText = 'Unable to contact the server.';
+        console.error(error);
     }
-
-    users.push({ username, password });
-    localStorage.setItem("users", JSON.stringify(users));
-
-    alert("Account created successfully!");
-    showLogin();
 }
 
 // LOGIN
-function login() {
+async function login() {
     let username = document.getElementById("loginUser").value.trim();
     let password = document.getElementById("loginPass").value.trim();
 
-    let users = JSON.parse(localStorage.getItem("users")) || [];
+    if (username === "" || password === "") {
+        document.getElementById("loginError").innerText = "Please fill all fields.";
+        return;
+    }
 
-    let validUser = users.find(
-        u => u.username === username && u.password === password
-    );
+    try {
+        const response = await fetch(`${API_BASE}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
 
-    if(validUser) {
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+            document.getElementById("loginError").innerText = data.message || 'Invalid username or password.';
+            return;
+        }
+
         localStorage.setItem("loggedInUser", username);
         window.location.href = "home.html";
-    } else {
-        document.getElementById("loginError").innerText = "Invalid username or password";
+    } catch (error) {
+        document.getElementById("loginError").innerText = 'Unable to contact the server.';
+        console.error(error);
     }
 }
 </script>
-<script src="login.js"></script>
 
 </body>
 </html>

@@ -7,6 +7,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
+/* ── SCROLL PROGRESS ── */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, #27ae60, #2ecc71);
+  z-index: 9999;
+  transition: width 0.05s linear;
+  box-shadow: 0 0 8px rgba(39, 174, 96, 0.6);
+}
+
 :root {
   --green: #27ae60;
   --green-light: #2ecc71;
@@ -46,23 +59,29 @@ body {
   z-index: 200;
   border-bottom: 1px solid rgba(255,255,255,0.30);
   box-shadow: 0 8px 32px rgba(0,0,0,0.05);
+  transition: padding 0.35s ease, background 0.35s ease;
+}
+
+.navbar.shrink {
+  padding: 10px 60px;
+  background: rgba(255,255,255,0.45);
+  backdrop-filter: blur(18px);
 }
 
 .logo { display: flex; align-items: center; gap: 10px; }
-
 .logo h2 {
   font-family: 'Playfair Display', serif;
   font-size: 22px;
   color: var(--green-dark);
   letter-spacing: -0.5px;
+  transition: font-size 0.3s;
 }
+.navbar.shrink .logo h2 { font-size: 18px; }
 
-/* ── NAV LINKS with slide-from-right entrance ── */
 .nav-links {
   display: flex;
   align-items: center;
   gap: 4px;
-  /* entrance state */
   transform: translateX(120px);
   opacity: 0;
   animation: slideInRight 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
@@ -179,7 +198,7 @@ body {
 .grid-wrap { padding: 20px 60px 10px; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; }
 
-/* ── CARD — spiral entrance base state ── */
+/* ── CARD ── */
 .card {
   background: white;
   border-radius: 18px;
@@ -188,8 +207,6 @@ body {
   border: 1px solid rgba(39,174,96,0.06);
   display: flex;
   flex-direction: column;
-
-  /* spiral entrance — starts rotated, scaled down, offset */
   opacity: 0;
   transform: rotate(-8deg) scale(0.72) translateY(60px);
   transform-origin: center bottom;
@@ -200,7 +217,6 @@ body {
     border-color 0.30s ease;
 }
 
-/* triggered by IntersectionObserver */
 .card.spiral-visible {
   opacity: 1;
   transform: rotate(0deg) scale(1) translateY(0);
@@ -226,18 +242,6 @@ body {
   border: 1px solid rgba(39,174,96,0.2);
 }
 .card-badge.community-badge { background: var(--green); color: white; border-color: var(--green); }
-
-.wishlist-fab {
-  position: absolute; top: 10px; right: 10px;
-  width: 32px; height: 32px; border-radius: 50%;
-  background: rgba(255,255,255,0.92); backdrop-filter: blur(4px);
-  border: 1px solid rgba(233,30,140,0.25);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: all 0.22s; padding: 0;
-}
-.wishlist-fab svg { width: 15px; height: 15px; stroke: #e91e8c; fill: none; stroke-width: 2; transition: fill 0.2s; }
-.wishlist-fab:hover, .wishlist-fab.active { background: #e91e8c; border-color: #e91e8c; }
-.wishlist-fab:hover svg, .wishlist-fab.active svg { stroke: white; fill: white; }
 
 .content { padding: 18px; display: flex; flex-direction: column; flex: 1; }
 .content h4 { font-size: 16px; font-weight: 600; margin-bottom: 4px; color: var(--text); }
@@ -311,6 +315,7 @@ body {
 /* MOBILE */
 @media (max-width: 768px) {
   .navbar { padding: 0 20px; }
+  .navbar.shrink { padding: 6px 20px; }
   .nav-links { gap: 2px; }
   .nav-links a { padding: 7px 10px; font-size: 13px; }
   .nav-links a.cta { padding: 7px 14px; margin-left: 2px; }
@@ -325,11 +330,12 @@ body {
 
 <body>
 
+<!-- SCROLL PROGRESS BAR -->
+<div class="scroll-progress" id="scrollProgress"></div>
+
 <!-- NAVBAR -->
-<nav class="navbar">
-  <div class="logo">
-    <h2>ReuseMart</h2>
-  </div>
+<nav class="navbar" id="navbar">
+  <div class="logo"><h2>ReuseMart</h2></div>
   <div class="nav-links">
     <a href="home.html">Home</a>
     <a href="materials.html" class="active">Buy</a>
@@ -391,10 +397,26 @@ body {
 </div>
 
 <script>
+/* ── SCROLL PROGRESS BAR ── */
+const progressBar = document.getElementById('scrollProgress');
+window.addEventListener('scroll', () => {
+  const scrollY = window.scrollY;
+  const docH    = document.documentElement.scrollHeight - window.innerHeight;
+  const pct     = docH > 0 ? (scrollY / docH) * 100 : 0;
+  progressBar.style.width = pct.toFixed(1) + '%';
+}, { passive: true });
+
+/* ── NAVBAR SHRINK ON SCROLL (hide removed) ── */
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('shrink', window.scrollY > 50);
+}, { passive: true });
+
+/* ── ITEMS ── */
 const defaultItems = [
   { name: "Cement Bag",  price: "500",  category: "materials", badge: "In Stock", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTAIEPxoDU1G1uMBCTT_OedXVxZUYrs0J_AwA&s" },
-  { name: "Bricks",      price: "5000", category: "materials", badge: "Popular",  image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSUKcVJ5Fpl1TzRHn3et3QqZZtcdJoYJFgrwA&s" },
-  { name: "Steel",       price: "1500", category: "materials", badge: "New",      image: "https://www.autodesk.com/blogs/construction/wp-content/uploads/2024/07/steel-conmon-construction-material.jpg" }
+  { name: "Bricks",      price: "150", category: "materials", badge: "Popular",  image: "https://tiimg.tistatic.com/fp/1/007/776/rectangular-shaped-clay-red-color-bricks-for-domestic-commercial-construction-purpose-680.jpg" },
+  { name: "Steel",       price: "200", category: "materials", badge: "New",      image: "https://www.autodesk.com/blogs/construction/wp-content/uploads/2024/07/steel-conmon-construction-material.jpg" }
 ];
 
 function getCommunityItems() {
@@ -431,9 +453,6 @@ function cardHTML(item, i, isCommunity) {
       <div class="card-img-wrap">
         <img src="${imgSrc}" alt="${item.name}" onerror="this.src='${fallback}'">
         ${badge}
-        <button class="wishlist-fab" onclick="toggleWish(this)" title="Save to wishlist">
-          <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-        </button>
       </div>
       <div class="content">
         <span class="cat-tag">${item.category}</span>
@@ -453,7 +472,6 @@ function cardHTML(item, i, isCommunity) {
 /* ── SPIRAL SCROLL ENTRANCE ── */
 function attachSpiralObserver() {
   const cards = document.querySelectorAll(".card:not(.spiral-visible)");
-
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -465,11 +483,7 @@ function attachSpiralObserver() {
         observer.unobserve(card);
       }
     });
-  }, {
-    threshold: 0.12,
-    rootMargin: "0px 0px -40px 0px"
-  });
-
+  }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
   cards.forEach(card => observer.observe(card));
 }
 
@@ -514,7 +528,6 @@ function displayItems() {
         </div>`;
   }
 
-  // attach spiral observer after DOM is updated
   attachSpiralObserver();
 }
 
@@ -526,14 +539,9 @@ function addToCart(name, price, image) {
 }
 
 function buyNow(name, price, image) {
-  let bought = JSON.parse(localStorage.getItem("bought")) || [];
-  bought.push({ name, price, image, date: new Date().toLocaleString() });
-  localStorage.setItem("bought", JSON.stringify(bought));
-  showToast('Purchased ' + name + '!', 'blue');
-}
-
-function toggleWish(btn) {
-  btn.classList.toggle('active');
+  localStorage.setItem("checkoutItem", JSON.stringify({ name, price, image }));
+  localStorage.setItem("checkoutItemIndex", "-1");
+  window.location.href = "filldetailpage.html";
 }
 
 function showToast(msg, type) {

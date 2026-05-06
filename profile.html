@@ -6,7 +6,20 @@
 <title>Dashboard - ReuseMart</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
+
 <style>
+  .scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, #27ae60, #2ecc71);
+  z-index: 9999;
+  transition: width 0.05s linear;
+  box-shadow: 0 0 8px rgba(39, 174, 96, 0.6);
+}
+
 :root {
   --green: #27ae60;
   --green-light: #2ecc71;
@@ -24,6 +37,42 @@
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); overflow-x: hidden; }
+
+/* =============================================
+   FLOATING DROP-IN SCROLL EFFECT
+   ============================================= */
+
+/* Elements start invisible, floated above their natural position */
+.drop-in {
+  opacity: 0;
+  transform: translateY(-38px);
+  /* Slight upward float offset — elements "hang" before landing */
+}
+
+/* The soft landing animation: drops in, overshoots slightly, settles */
+@keyframes floatDropIn {
+  0%   { opacity: 0;   transform: translateY(-38px) scale(0.97); }
+  55%  { opacity: 1;   transform: translateY(5px)   scale(1.005); }   /* gentle overshoot */
+  75%  { transform: translateY(-3px) scale(0.998); }                   /* tiny bounce back */
+  90%  { transform: translateY(2px)  scale(1.001); }                   /* settle down */
+  100% { opacity: 1;   transform: translateY(0)     scale(1); }
+}
+
+/* Applied by JS when element enters viewport */
+.drop-in.landed {
+  animation: floatDropIn 0.72s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Stagger siblings — cards in a grid land one after another */
+.drop-in.landed.delay-1 { animation-delay: 0.07s; }
+.drop-in.landed.delay-2 { animation-delay: 0.14s; }
+.drop-in.landed.delay-3 { animation-delay: 0.21s; }
+.drop-in.landed.delay-4 { animation-delay: 0.28s; }
+.drop-in.landed.delay-5 { animation-delay: 0.35s; }
+.drop-in.landed.delay-6 { animation-delay: 0.42s; }
+.drop-in.landed.delay-7 { animation-delay: 0.49s; }
+.drop-in.landed.delay-8 { animation-delay: 0.56s; }
+
 
 /* NAVBAR */
 .navbar {
@@ -148,30 +197,28 @@ body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--t
   will-change: transform, opacity;
   position: relative;
 
-  /* 3D entrance: fly in from far away with spin */
+  /* Default state: invisible, waiting for drop-in */
   opacity: 0;
-  transform: perspective(900px) translateZ(-220px) rotateX(18deg) scale(0.82);
-  animation: card3DEnter 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transform: perspective(900px) translateY(-38px) scale(0.97);
 
   transition: box-shadow 0.30s ease, border-color 0.30s ease;
 }
 
+/* Cards that are already in view on load use 3D fly-in */
+.card.in-view-on-load {
+  animation: card3DEnter 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Cards that scroll into view use the soft drop-in */
+.card.drop-landed {
+  animation: floatDropIn 0.72s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
 @keyframes card3DEnter {
-  0% {
-    opacity: 0;
-    transform: perspective(900px) translateZ(-220px) rotateX(18deg) scale(0.82);
-  }
-  60% {
-    opacity: 1;
-    transform: perspective(900px) translateZ(12px) rotateX(-3deg) scale(1.02);
-  }
-  80% {
-    transform: perspective(900px) translateZ(-4px) rotateX(1deg) scale(0.99);
-  }
-  100% {
-    opacity: 1;
-    transform: perspective(900px) translateZ(0px) rotateX(0deg) scale(1);
-  }
+  0%   { opacity: 0; transform: perspective(900px) translateZ(-220px) rotateX(18deg) scale(0.82); }
+  60%  { opacity: 1; transform: perspective(900px) translateZ(12px) rotateX(-3deg) scale(1.02); }
+  80%  { transform: perspective(900px) translateZ(-4px) rotateX(1deg) scale(0.99); }
+  100% { opacity: 1; transform: perspective(900px) translateZ(0px) rotateX(0deg) scale(1); }
 }
 
 /* Glare overlay */
@@ -247,7 +294,7 @@ button {
 </style>
 </head>
 <body>
-
+<div class="scroll-progress" id="scrollProgress"></div>
 <!-- NAVBAR -->
 <nav class="navbar glass">
   <div class="logo"><h2>ReuseMart</h2></div>
@@ -287,17 +334,17 @@ button {
 <div class="wrapper">
 
   <!-- GUEST BANNER -->
-  <div class="guest-banner" id="guestBanner">
+  <div class="guest-banner drop-in" id="guestBanner">
     <span class="guest-banner-text"><strong>You're browsing as a guest.</strong> Log in to see your personalised dashboard.</span>
     <button class="btn-go-login" onclick="window.location.href='login.html'">Go to Login &rarr;</button>
   </div>
 
   <!-- CART -->
-  <div class="section-divider" id="cartSection">
+  <div class="section-divider drop-in" id="cartSection">
     <span class="section-divider-label">My Cart</span>
     <div class="section-divider-line"></div>
   </div>
-  <div class="section-controls">
+  <div class="section-controls drop-in">
     <span class="section-meta" id="cartCount">0 items</span>
     <div class="controls-right">
       <div class="search-wrap">
@@ -307,28 +354,28 @@ button {
       <button class="btn-clear" onclick="clearCart()">Clear All</button>
     </div>
   </div>
-  <div class="total-box">
+  <div class="total-box drop-in">
     <span class="total-label">Cart Total</span>
     <span class="total-amount">&#8377;<span id="total">0</span></span>
   </div>
   <div class="grid" id="cartList"></div>
 
   <!-- RENTED -->
-  <div class="section-divider" id="rentSection">
+  <div class="section-divider drop-in" id="rentSection">
     <span class="section-divider-label">Rented Items</span>
     <div class="section-divider-line"></div>
   </div>
-  <div class="section-controls">
+  <div class="section-controls drop-in">
     <span class="section-meta" id="rentCount">0 active rentals</span>
   </div>
   <div class="grid" id="rentedList"></div>
 
   <!-- PURCHASED -->
-  <div class="section-divider" id="buySection">
+  <div class="section-divider drop-in" id="buySection">
     <span class="section-divider-label">Purchased Items</span>
     <div class="section-divider-line"></div>
   </div>
-  <div class="section-controls">
+  <div class="section-controls drop-in">
     <span class="section-meta" id="buyCount">0 orders</span>
   </div>
   <div class="grid" id="boughtList"></div>
@@ -346,6 +393,48 @@ let cart   = JSON.parse(localStorage.getItem("cart"))   || [];
 let bought = JSON.parse(localStorage.getItem("bought")) || [];
 let rented = JSON.parse(localStorage.getItem("rented")) || [];
 const loggedIn = localStorage.getItem("loggedInUser");
+
+/* =============================================
+   FLOATING DROP-IN — INTERSECTION OBSERVER
+   =============================================
+   Watches .drop-in elements and .card elements.
+   When they enter the viewport, they get the
+   "landed" class which triggers the soft-landing
+   keyframe. Cards in each grid are staggered
+   so they fall one after another.
+============================================= */
+const dropObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const el = entry.target;
+
+    if (el.classList.contains('drop-in')) {
+      /* Non-card drop-in elements land immediately */
+      el.classList.add('landed');
+    } else if (el.classList.contains('card')) {
+      /* Cards: stagger within their parent grid */
+      const siblings = Array.from(el.parentElement.querySelectorAll('.card'));
+      const idx      = siblings.indexOf(el);
+      el.style.animationDelay = (idx * 0.09) + 's';
+      el.classList.add('drop-landed');
+    }
+
+    dropObserver.unobserve(el);
+  });
+}, {
+  threshold: 0.08,      /* Trigger when 8% of element is visible */
+  rootMargin: '0px 0px -30px 0px'  /* Tiny bottom offset for a natural feel */
+});
+
+/* Observe all existing .drop-in elements immediately */
+document.querySelectorAll('.drop-in').forEach(el => dropObserver.observe(el));
+
+/* Called after each display* function so new cards are observed */
+function observeCards() {
+  document.querySelectorAll('.card:not(.drop-landed):not(.in-view-on-load)').forEach(card => {
+    dropObserver.observe(card);
+  });
+}
 
 /* AUTH UI */
 function initAuthUI() {
@@ -399,7 +488,7 @@ function displayCart() {
     const price = parseInt(String(item.price).replace(/[^0-9]/g, "")) || 0;
     total += price;
     c.innerHTML += `
-    <div class="card" style="animation-delay:${i * 0.09}s">
+    <div class="card">
       <div class="card-img-wrap">
         <img src="${item.image}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/400x300/eafaf1/27ae60?text=No+Image'">
         <span class="card-badge">In Cart</span>
@@ -415,6 +504,7 @@ function displayCart() {
     </div>`;
   });
   document.getElementById("total").innerText = total.toLocaleString('en-IN');
+  observeCards();
   attachTilt();
 }
 
@@ -440,7 +530,7 @@ function displayRented() {
     else if (rem === 0){ statusText = "Last day!"; pillClass = "orange-pill"; }
     else               { statusText = "Overdue by " + Math.abs(rem) + " days"; pillClass = "red-pill"; }
     c.innerHTML += `
-    <div class="card" style="animation-delay:${i * 0.09}s">
+    <div class="card">
       <div class="card-img-wrap">
         <img src="${item.image}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/400x300/eafaf1/27ae60?text=No+Image'">
         <span class="card-badge">Rented</span>
@@ -454,6 +544,7 @@ function displayRented() {
       </div>
     </div>`;
   });
+  observeCards();
   attachTilt();
 }
 
@@ -473,7 +564,7 @@ function displayBought() {
   bought.forEach((item, i) => {
     const price = parseInt(String(item.price).replace(/[^0-9]/g, "")) || 0;
     c.innerHTML += `
-    <div class="card" style="animation-delay:${i * 0.09}s">
+    <div class="card">
       <div class="card-img-wrap">
         <img src="${item.image}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/400x300/eafaf1/27ae60?text=No+Image'">
         <span class="card-badge">Purchased</span>
@@ -486,17 +577,15 @@ function displayBought() {
       </div>
     </div>`;
   });
+  observeCards();
   attachTilt();
 }
 
 /* ACTIONS */
 function buyItem(i) {
-  const item = cart[i]; item.date = new Date().toLocaleString();
-  bought.push(item); cart.splice(i, 1);
-  localStorage.setItem("cart", JSON.stringify(cart));
-  localStorage.setItem("bought", JSON.stringify(bought));
-  showToast("Item purchased!");
-  displayCart(); displayBought();
+  localStorage.setItem("checkoutItem", JSON.stringify(cart[i]));
+  localStorage.setItem("checkoutItemIndex", i);
+  window.location.href = "filldetailpage.html";
 }
 function cancelOrder(i) {
   const item = bought[i]; delete item.date;
@@ -549,5 +638,13 @@ displayBought();
 displayRented();
 </script>
 <script src="script.js"></script>
+<script>const progressBar = document.getElementById('scrollProgress');
+
+window.addEventListener('scroll', () => {
+  const scrollY = window.scrollY;
+  const docH    = document.documentElement.scrollHeight - window.innerHeight;
+  const pct     = docH > 0 ? (scrollY / docH) * 100 : 0;
+  progressBar.style.width = pct.toFixed(1) + '%';
+}, { passive: true });</script>
 </body>
 </html>
